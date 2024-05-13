@@ -1,0 +1,74 @@
+﻿@model BookStore.ViewModel.BookGenreViewModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="container-lg">
+    <h1 class="mt-5">Index</h1>
+
+    <p>
+        <a class="btn btn-primary" asp-action="Create">Create New</a>
+    </p>
+    <form asp-controller="Books" asp-action="Index" method="get">
+        <p>
+            <select asp-for="BookGenre" asp-items="Model.Genres">
+                <option value="">All</option>
+            </select>
+            Title: <input type="text" asp-for="SearchString" />
+            Author: <input type="text" asp-for="AuthorSearchString" />
+            <input type="submit" value="Filter" />
+        </p>
+    </form>
+ 
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.Books[0].Title)</th>
+                    <th>@Html.DisplayNameFor(model => model.Books[0].YearPublished)</th>
+                    <th>@Html.DisplayNameFor(model => model.Books[0].NumPages)</th>
+                    <th>@Html.DisplayNameFor(model => model.Books[0].Description)</th>
+                    <th>@Html.DisplayNameFor(model => model.Books[0].Publisher)</th>
+                    <th>@Html.DisplayNameFor(model => model.Books[0].FrontPage)</th>
+                    <th>@Html.DisplayNameFor(model => model.Books[0].DownloadUrl)</th>
+                    <th>@Html.DisplayNameFor(model => model.Books[0].Author)</th>
+                    <th>@Html.DisplayNameFor(model => model.Books[0].BookGenres)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Books)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                        <td>@Html.DisplayFor(modelItem => item.YearPublished)</td>
+                        <td>@Html.DisplayFor(modelItem => item.NumPages)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Description)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Publisher)</td>
+                        <td><img class="img-fluid" src="@Html.DisplayFor(modelItem => item.FrontPage)" style="max-width: 100px;" /></td>
+                        <td>@Html.DisplayFor(modelItem => item.DownloadUrl)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Author.FullName)</td>
+                        <td>
+                            @foreach (var genre in item.BookGenres)
+                            {
+                                <a asp-controller="Actors" asp-action="Details" asp-route-id="@genre.GenreId">
+                                    @genre.Genre.GenreName
+                                </a>
+
+                                <br />
+                            }
+                        </td>
+                        <td>
+                            <div class="btn-group-vertical">
+                                <a class="btn btn-info btn-sm" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                                <a class="btn btn-secondary btn-sm" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                                <a class="btn btn-danger btn-sm" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
