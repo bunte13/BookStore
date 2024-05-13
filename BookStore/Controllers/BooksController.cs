@@ -30,10 +30,10 @@ namespace BookStore.Controllers
 
             // Query the books
             var booksQuery = _context.Books
-                .Include(b => b.Author)
                 .Include(b => b.Reviews)
                 .Include(b => b.BookGenres)
                 .ThenInclude(bg => bg.Genre)
+                .Include(b => b.Author)
                 .AsQueryable();
 
             var authorsQuery = _context.Author.AsQueryable();
@@ -51,7 +51,7 @@ namespace BookStore.Controllers
             if (!string.IsNullOrEmpty(authorsearchString)) // Fixed to check autsrch instead of searchString
             {
                 // Filter by full name
-                authorsQuery = authorsQuery.Where(b => (b.FirstName + " " + b.LastName).Contains(authorsearchString));
+                booksQuery = booksQuery.Where(a => (a.Author.FirstName + " " + a.Author.LastName).Contains(authorsearchString));
             }
 
             // Execute the queries asynchronously

@@ -22,28 +22,20 @@ namespace BookStore.Controllers
 
         // GET: Authors
         public async Task<IActionResult> Index(string searchString)
-        {
-            // Retrieve all authors
+        {           
             var authorsQuery = _context.Author.AsQueryable();
 
-            // Apply filtering if search string is provided
             if (!string.IsNullOrEmpty(searchString))
-            {
-                // Filter by full name
+            {             
                 authorsQuery = authorsQuery.Where(a => (a.FirstName + " " + a.LastName).Contains(searchString));
             }
-
-            // Execute the query and retrieve the authors
             var authors = await authorsQuery.ToListAsync();
-
-            // Construct the ViewModel
             var viewModel = new AuthorNameViewModel
             {
                 Authors = authors,
                 SearchString = searchString
             };
-
-            // Pass the ViewModel to the view
+ 
             return View(viewModel);
         }
 

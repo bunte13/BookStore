@@ -74,19 +74,21 @@
         </dt>
         <dd class="col-sm-10">
             @{
-                int sumOfRatings = 0;
+                double sumOfRatings = 0;
                 foreach (var item in Model.Reviews)
                 {
                     sumOfRatings += item.Rating;
                 }
-                int averageRating = 0;
+                double averageRating = 0;
                 if (Model.Reviews.Count > 0)
                 {
-                    averageRating = (int)sumOfRatings / Model.Reviews.Count;
+                    averageRating = sumOfRatings / (double)Model.Reviews.Count;
+                    averageRating = Math.Round(averageRating, 1);
                 }
                 <a>@averageRating</a>
                 <br />
             }
+            </dd>
     </dl>
 </div>
 <div>
