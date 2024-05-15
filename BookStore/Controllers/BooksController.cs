@@ -8,15 +8,19 @@ using Microsoft.EntityFrameworkCore;
 using BookStore.Data;
 using BookStore.Models;
 using BookStore.ViewModel;
+using Microsoft.Extensions.Hosting;
+
 namespace BookStore.Controllers
 {
     public class BooksController : Controller
     {
         private readonly BookStoreContext _context;
+        private readonly IWebHostEnvironment _environment;
 
-        public BooksController(BookStoreContext context)
+        public BooksController(BookStoreContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         // GET: Books
@@ -92,29 +96,74 @@ namespace BookStore.Controllers
 
             return View(books);
         }
-
+        //tuka treba
         // GET: Books/Create
         public IActionResult Create()
         {
-            ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "Id");
-            return View();
+            ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "FullName");
+            var genres = _context.Genres.AsEnumerable();
+
+            BookGenresCreateViewModel viewmodel = new BookGenresCreateViewModel
+            {
+                GenreListCreate = new MultiSelectList(genres, "Id", "GenreName")
+            };
+            return View(viewmodel);
         }
+
         //nema cepnato
         // POST: Books/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+
+        //i tuka treba
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,YearPublished,NumPages,Description,Publisher,FrontPage,DownloadUrl,AuthorId")] Books books)
+        public async Task<IActionResult> Create(BookGenresCreateViewModel viewmodel)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(books);
+                if (viewmodel.Book.FrontPageFile != null && viewmodel.Book.FrontPageFile.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + viewmodel.Book.FrontPageFile.FileName;
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await viewmodel.Book.FrontPageFile.CopyToAsync(fileStream);
+                    }
+
+                    // Save file path in the database
+                    viewmodel.Book.FrontPage = "/uploads/" + uniqueFileName;
+                    //book.FrontPage = filePath;
+                }
+                if (viewmodel.Book.PdfFile != null && viewmodel.Book.PdfFile.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+                    string uniquePdfFileName = Guid.NewGuid().ToString() + "_" + viewmodel.Book.PdfFile.FileName;
+                    string pdfFilePath = Path.Combine(uploadsFolder, uniquePdfFileName);
+
+                    using (var pdfFileStream = new FileStream(pdfFilePath, FileMode.Create))
+                    {
+                        await viewmodel.Book.PdfFile.CopyToAsync(pdfFileStream);
+                    }
+
+                    // Save PDF file path in the database
+                    viewmodel.Book.DownloadUrl = "/uploads/" + uniquePdfFileName;
+                    //book.DownloadURL = pdfFilePath;
+                }
+
+                // Save your model to the database
+                _context.Add(viewmodel.Book);
+                await _context.SaveChangesAsync();
+                foreach (int item in viewmodel.SelectedGenresCreate)
+                {
+                    _context.BookGenre.Add(new BookGenre { GenreId = item, BookId = viewmodel.Book.Id });
+                }
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "FullName", books.AuthorId);
-            return View(books);
+            return View(viewmodel.Book);
         }
         //tuka cepnavme
         // GET: Books/Edit/5
@@ -136,11 +185,11 @@ namespace BookStore.Controllers
             BookGenresEditViewModel viewModel = new BookGenresEditViewModel
             {
                 Book = books,
-                GenreList = new MultiSelectList(genres, "Id", "GenreName"),
-                SelectedGenres = books.BookGenres.Select(sa => sa.GenreId)
+                GenreListEdit = new MultiSelectList(genres, "Id", "GenreName"),
+                SelectedGenresEdit = books.BookGenres.Select(sa => sa.GenreId)
             };
 
-            ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "Id", books.AuthorId);
+            ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "FullName", books.AuthorId);
             return View(viewModel);
         }
         //i tuka cepnavme
@@ -155,14 +204,58 @@ namespace BookStore.Controllers
             {
                 return NotFound();
             }
-
+            
             if (ModelState.IsValid)
             {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors);
+                    foreach (var error in errors)
+                    {
+                        Console.WriteLine(error.ErrorMessage);
+                    }
+
+                    // Return the view with the viewModel so the user can correct the errors
+                    ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "FullName", viewModel.Book.AuthorId);
+                    return View(viewModel);
+                }
                 try
                 {
+                    //od tuka 
+                    if (viewModel.Book.FrontPageFile != null && viewModel.Book.FrontPageFile.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+                        string uniqueFileName = Guid.NewGuid().ToString() + "_" + viewModel.Book.FrontPageFile.FileName;
+                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await viewModel.Book.FrontPageFile.CopyToAsync(fileStream);
+                        }
+
+                        // Save file path in the database
+                        viewModel.Book.FrontPage = "/uploads/" + uniqueFileName;
+                        //book.FrontPage = filePath;
+                    }
+                    if (viewModel.Book.PdfFile != null && viewModel.Book.PdfFile.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+                        string uniquePdfFileName = Guid.NewGuid().ToString() + "_" + viewModel.Book.PdfFile.FileName;
+                        string pdfFilePath = Path.Combine(uploadsFolder, uniquePdfFileName);
+
+                        using (var pdfFileStream = new FileStream(pdfFilePath, FileMode.Create))
+                        {
+                            await viewModel.Book.PdfFile.CopyToAsync(pdfFileStream);
+                        }
+
+                        // Save PDF file path in the database
+                        viewModel.Book.DownloadUrl = "/uploads/" + uniquePdfFileName;
+                        //book.DownloadURL = pdfFilePath;
+                    }
+                    //do tuka
                     _context.Update(viewModel.Book);
                     await _context.SaveChangesAsync();
-                    IEnumerable<int> newGenreList = viewModel.SelectedGenres;
+                    IEnumerable<int> newGenreList = viewModel.SelectedGenresEdit;
                     IEnumerable<int> prevGenreList = _context.BookGenre.Where(s => s.BookId == id).Select(s => s.GenreId);
                     IQueryable<BookGenre> toBeRemoved = _context.BookGenre.Where(s => s.BookId == id);
                     if (newGenreList != null)

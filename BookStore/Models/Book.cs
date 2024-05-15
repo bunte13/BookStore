@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Xml.Linq;
 
 namespace BookStore.Models
@@ -24,5 +25,15 @@ namespace BookStore.Models
         public ICollection<BookGenre>? BookGenres { get; set; }
         public ICollection<Review>? Reviews { get; set; }
         public ICollection<UserBooks>? UserBooks { get; set; }
+
+        [NotMapped]
+        [Display(Name = "Front Page")]
+        public IFormFile FrontPageFile { get; set; }
+        
+
+        [NotMapped]
+        [Display(Name = "PDF File")]
+        public IFormFile PdfFile { get; set; }
+
     }
 }

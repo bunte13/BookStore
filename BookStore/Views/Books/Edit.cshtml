@@ -39,14 +39,14 @@
                 <span asp-validation-for="Book.Publisher" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Book.FrontPage" class="control-label"></label>
-                <input asp-for="Book.FrontPage" class="form-control" />
-                <span asp-validation-for="Book.FrontPage" class="text-danger"></span>
+                <label asp-for="Book.FrontPageFile" class="control-label"></label>
+                <input asp-for="Book.FrontPageFile" class="form-control" />
+                <span asp-validation-for="Book.FrontPageFile" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Book.DownloadUrl" class="control-label"></label>
-                <input asp-for="Book.DownloadUrl" class="form-control" />
-                <span asp-validation-for="Book.DownloadUrl" class="text-danger"></span>
+                <label asp-for="Book.PdfFile" class="control-label"></label>
+                <input asp-for="Book.PdfFile" class="form-control" />
+                <span asp-validation-for="Book.PdfFile" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Book.AuthorId" class="control-label"></label>
@@ -55,9 +55,9 @@
             </div>
             <div class="form-group">
                 <label class="control-label">Genres</label>
-                <select asp-for="SelectedGenres" class="form-control js-example-basic-multiple"
-                        asp-items="Model.GenreList"> </select>
-                <span asp-validation-for="SelectedGenres" class="text-danger"></span>
+                <select asp-for="SelectedGenresEdit" class="form-control js-example-basic-multiple"
+                        asp-items="@Model.GenreListEdit"> </select>
+                <span asp-validation-for="SelectedGenresEdit" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
@@ -76,7 +76,7 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(document).ready(function () {
-$("#SelectedGenres").select2();
+$("#SelectedGenresEdit").select2();
 });
 </script>
 }
