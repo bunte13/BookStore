@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form method="post" asp-action="Edit" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Book.Id" />
             <div class="form-group">
@@ -39,14 +39,14 @@
                 <span asp-validation-for="Book.Publisher" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Book.FrontPageFile" class="control-label"></label>
-                <input asp-for="Book.FrontPageFile" class="form-control" />
-                <span asp-validation-for="Book.FrontPageFile" class="text-danger"></span>
+                <label asp-for="FrontPageFile" class="control-label"></label>
+                <input asp-for="FrontPageFile" type="file" class="form-control" />
+                <span asp-validation-for="FrontPageFile" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Book.PdfFile" class="control-label"></label>
-                <input asp-for="Book.PdfFile" class="form-control" />
-                <span asp-validation-for="Book.PdfFile" class="text-danger"></span>
+                <label asp-for="PdfFile" class="control-label"></label>
+                <input asp-for="PdfFile" type="file" class="form-control" />
+                <span asp-validation-for="PdfFile" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Book.AuthorId" class="control-label"></label>
@@ -56,7 +56,7 @@
             <div class="form-group">
                 <label class="control-label">Genres</label>
                 <select asp-for="SelectedGenresEdit" class="form-control js-example-basic-multiple"
-                        asp-items="@Model.GenreListEdit"> </select>
+                        asp-items="Model.GenreListEdit"> </select>
                 <span asp-validation-for="SelectedGenresEdit" class="text-danger"></span>
             </div>
             <div class="form-group">

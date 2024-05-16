@@ -26,14 +26,5 @@ namespace BookStore.Models
         public ICollection<Review>? Reviews { get; set; }
         public ICollection<UserBooks>? UserBooks { get; set; }
 
-        [NotMapped]
-        [Display(Name = "Front Page")]
-        public IFormFile FrontPageFile { get; set; }
-        
-
-        [NotMapped]
-        [Display(Name = "PDF File")]
-        public IFormFile PdfFile { get; set; }
-
     }
 }

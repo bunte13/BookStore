@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Index";
 }
+@using System.IO
 
 <div class="container-lg">
     <h1 class="mt-5">Index</h1>
@@ -47,7 +48,8 @@
                         <td>@Html.DisplayFor(modelItem => item.Description)</td>
                         <td>@Html.DisplayFor(modelItem => item.Publisher)</td>
                         <td><img class="img-fluid" src="@Html.DisplayFor(modelItem => item.FrontPage)" style="max-width: 100px;" /></td>
-                        <td>@Html.DisplayFor(modelItem => item.DownloadUrl)</td>
+                        <td><a href="@Url.Action("ViewFile", "Books", new { fileName = item.DownloadUrl.Split('/').Last() })">Download PDF</a></td>
+
                         <td>@Html.DisplayFor(modelItem => item.Author.FullName)</td>
                         <td>
                             @foreach (var genre in item.BookGenres)

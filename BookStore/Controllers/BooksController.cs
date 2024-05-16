@@ -9,6 +9,7 @@ using BookStore.Data;
 using BookStore.Models;
 using BookStore.ViewModel;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace BookStore.Controllers
 {
@@ -22,6 +23,26 @@ namespace BookStore.Controllers
             _context = context;
             _environment = environment;
         }
+        public IActionResult ViewFile(string fileName)
+        {
+            var filePath = Path.Combine(_environment.WebRootPath, "uploads", fileName);
+            if (System.IO.File.Exists(filePath))
+            {
+                var provider = new FileExtensionContentTypeProvider();
+                if (provider.TryGetContentType(fileName, out var contentType))
+                {
+                    return PhysicalFile(filePath, contentType);
+                }
+                else
+                {
+                    return PhysicalFile(filePath, "application/octet-stream"); // Default to octet-stream if MIME type cannot be determined
+                }
+            }
+            else
+            {
+                return NotFound(); // Return 404 if the file does not exist
+            }
+        }
 
         // GET: Books
         public async Task<IActionResult> Index(string bookGenre, string searchString, string authorsearchString)
@@ -31,7 +52,7 @@ namespace BookStore.Controllers
                 .OrderBy(g => g.GenreName)
                 .Select(g => g.GenreName)
                 .Distinct();
-
+            
             // Query the books
             var booksQuery = _context.Books
                 .Include(b => b.Reviews)
@@ -122,30 +143,30 @@ namespace BookStore.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (viewmodel.Book.FrontPageFile != null && viewmodel.Book.FrontPageFile.Length > 0)
+                if (viewmodel.FrontPageFile != null && viewmodel.FrontPageFile.Length > 0)
                 {
                     string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + viewmodel.Book.FrontPageFile.FileName;
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + viewmodel.FrontPageFile.FileName;
                     string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                     using (var fileStream = new FileStream(filePath, FileMode.Create))
                     {
-                        await viewmodel.Book.FrontPageFile.CopyToAsync(fileStream);
+                        await viewmodel.FrontPageFile.CopyToAsync(fileStream);
                     }
 
                     // Save file path in the database
                     viewmodel.Book.FrontPage = "/uploads/" + uniqueFileName;
                     //book.FrontPage = filePath;
                 }
-                if (viewmodel.Book.PdfFile != null && viewmodel.Book.PdfFile.Length > 0)
+                if (viewmodel.PdfFile != null && viewmodel.PdfFile.Length > 0)
                 {
                     string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
-                    string uniquePdfFileName = Guid.NewGuid().ToString() + "_" + viewmodel.Book.PdfFile.FileName;
+                    string uniquePdfFileName = Guid.NewGuid().ToString() + "_" + viewmodel.PdfFile.FileName;
                     string pdfFilePath = Path.Combine(uploadsFolder, uniquePdfFileName);
 
                     using (var pdfFileStream = new FileStream(pdfFilePath, FileMode.Create))
                     {
-                        await viewmodel.Book.PdfFile.CopyToAsync(pdfFileStream);
+                        await viewmodel.PdfFile.CopyToAsync(pdfFileStream);
                     }
 
                     // Save PDF file path in the database
@@ -207,6 +228,7 @@ namespace BookStore.Controllers
             
             if (ModelState.IsValid)
             {
+
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors);
@@ -222,35 +244,35 @@ namespace BookStore.Controllers
                 try
                 {
                     //od tuka 
-                    if (viewModel.Book.FrontPageFile != null && viewModel.Book.FrontPageFile.Length > 0)
+                    if (viewModel.FrontPageFile != null && viewModel.FrontPageFile.Length > 0)
                     {
                         string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
-                        string uniqueFileName = Guid.NewGuid().ToString() + "_" + viewModel.Book.FrontPageFile.FileName;
+                        string uniqueFileName = Guid.NewGuid().ToString() + "_" + viewModel.FrontPageFile.FileName;
                         string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                         using (var fileStream = new FileStream(filePath, FileMode.Create))
                         {
-                            await viewModel.Book.FrontPageFile.CopyToAsync(fileStream);
+                            await viewModel.FrontPageFile.CopyToAsync(fileStream);
                         }
 
                         // Save file path in the database
                         viewModel.Book.FrontPage = "/uploads/" + uniqueFileName;
                         //book.FrontPage = filePath;
                     }
-                    if (viewModel.Book.PdfFile != null && viewModel.Book.PdfFile.Length > 0)
+                    if (viewModel.PdfFile != null && viewModel.PdfFile.Length > 0)
                     {
                         string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
-                        string uniquePdfFileName = Guid.NewGuid().ToString() + "_" + viewModel.Book.PdfFile.FileName;
+                        string uniquePdfFileName = Guid.NewGuid().ToString() + "_" + viewModel.PdfFile.FileName;
                         string pdfFilePath = Path.Combine(uploadsFolder, uniquePdfFileName);
 
                         using (var pdfFileStream = new FileStream(pdfFilePath, FileMode.Create))
                         {
-                            await viewModel.Book.PdfFile.CopyToAsync(pdfFileStream);
+                            await viewModel.PdfFile.CopyToAsync(pdfFileStream);
                         }
 
                         // Save PDF file path in the database
                         viewModel.Book.DownloadUrl = "/uploads/" + uniquePdfFileName;
-                        //book.DownloadURL = pdfFilePath;
+                        //book.DownloadUrl = pdfFilePath;
                     }
                     //do tuka
                     _context.Update(viewModel.Book);

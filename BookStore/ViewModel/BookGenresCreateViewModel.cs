@@ -8,5 +8,7 @@ namespace BookStore.ViewModel
         public Books Book { get; set; }
         public IEnumerable<int>? SelectedGenresCreate { get; set; }
         public IEnumerable<SelectListItem>? GenreListCreate { get; set; }
+        public IFormFile? FrontPageFile { get; set; }
+        public IFormFile? PdfFile { get; set; }
     }
 }
