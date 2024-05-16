@@ -219,79 +219,72 @@ namespace BookStore.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id,BookGenresEditViewModel viewModel)
+        public async Task<IActionResult> Edit(int id, BookGenresEditViewModel viewModel)
         {
             if (id != viewModel.Book.Id)
             {
                 return NotFound();
             }
-            
+
             if (ModelState.IsValid)
             {
-
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values.SelectMany(v => v.Errors);
-                    foreach (var error in errors)
-                    {
-                        Console.WriteLine(error.ErrorMessage);
-                    }
-
-                    // Return the view with the viewModel so the user can correct the errors
-                    ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "FullName", viewModel.Book.AuthorId);
-                    return View(viewModel);
-                }
                 try
                 {
-                    //od tuka 
+                    // Check if FrontPageFile is uploaded
                     if (viewModel.FrontPageFile != null && viewModel.FrontPageFile.Length > 0)
                     {
-                        string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
-                        string uniqueFileName = Guid.NewGuid().ToString() + "_" + viewModel.FrontPageFile.FileName;
-                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                        // Save FrontPageFile
+                        string uniqueFrontPageFileName = Guid.NewGuid().ToString() + "_" + viewModel.FrontPageFile.FileName;
+                        string frontPageFilePath = Path.Combine(_environment.WebRootPath, "uploads", uniqueFrontPageFileName);
 
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        using (var fileStream = new FileStream(frontPageFilePath, FileMode.Create))
                         {
                             await viewModel.FrontPageFile.CopyToAsync(fileStream);
                         }
 
-                        // Save file path in the database
-                        viewModel.Book.FrontPage = "/uploads/" + uniqueFileName;
-                        //book.FrontPage = filePath;
+                        viewModel.Book.FrontPage = "/uploads/" + uniqueFrontPageFileName; // Update file path
                     }
+
+                    // Check if PdfFile is uploaded
                     if (viewModel.PdfFile != null && viewModel.PdfFile.Length > 0)
                     {
-                        string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+                        // Save PdfFile
                         string uniquePdfFileName = Guid.NewGuid().ToString() + "_" + viewModel.PdfFile.FileName;
-                        string pdfFilePath = Path.Combine(uploadsFolder, uniquePdfFileName);
+                        string pdfFilePath = Path.Combine(_environment.WebRootPath, "uploads", uniquePdfFileName);
 
-                        using (var pdfFileStream = new FileStream(pdfFilePath, FileMode.Create))
+                        using (var fileStream = new FileStream(pdfFilePath, FileMode.Create))
                         {
-                            await viewModel.PdfFile.CopyToAsync(pdfFileStream);
+                            await viewModel.PdfFile.CopyToAsync(fileStream);
                         }
 
-                        // Save PDF file path in the database
-                        viewModel.Book.DownloadUrl = "/uploads/" + uniquePdfFileName;
-                        //book.DownloadUrl = pdfFilePath;
+                        viewModel.Book.DownloadUrl = "/uploads/" + uniquePdfFileName; // Update file path
                     }
-                    //do tuka
+
+                    // If FrontPageFile and PdfFile are not uploaded, retain the existing values
+                    if (viewModel.FrontPageFile == null && viewModel.PdfFile == null)
+                    {
+                        var existingBook = _context.Books.AsNoTracking().FirstOrDefault(b => b.Id == id);
+                        if (existingBook != null)
+                        {
+                            viewModel.Book.FrontPage = existingBook.FrontPage;
+                            viewModel.Book.DownloadUrl = existingBook.DownloadUrl;
+                        }
+                    }
+
+                    // Update Book entity with other changes
                     _context.Update(viewModel.Book);
                     await _context.SaveChangesAsync();
-                    IEnumerable<int> newGenreList = viewModel.SelectedGenresEdit;
-                    IEnumerable<int> prevGenreList = _context.BookGenre.Where(s => s.BookId == id).Select(s => s.GenreId);
-                    IQueryable<BookGenre> toBeRemoved = _context.BookGenre.Where(s => s.BookId == id);
-                    if (newGenreList != null)
+
+                    // Remove old genres
+                    var oldGenres = _context.BookGenre.Where(bg => bg.BookId == id);
+                    _context.BookGenre.RemoveRange(oldGenres);
+                    await _context.SaveChangesAsync();
+
+                    // Add new genres
+                    foreach (int genreId in viewModel.SelectedGenresEdit)
                     {
-                        toBeRemoved = toBeRemoved.Where(s => !newGenreList.Contains(s.GenreId));
-                        foreach (int actorId in newGenreList)
-                        {
-                            if (!prevGenreList.Any(s => s == actorId))
-                            {
-                                _context.BookGenre.Add(new BookGenre { GenreId = actorId, BookId = id });
-                            }
-                        }
+                        _context.BookGenre.Add(new BookGenre { GenreId = genreId, BookId = id });
                     }
-                    _context.BookGenre.RemoveRange(toBeRemoved);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -307,30 +300,10 @@ namespace BookStore.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
+            // Return the view with the viewModel so the user can correct the errors
             ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "FullName", viewModel.Book.AuthorId);
-            return View(viewModel.Book);
-        }
-
-        // GET: Books/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null || _context.Books == null)
-            {
-                return NotFound();
-            }
-
-            var books = await _context.Books
-                .Include(b => b.Author)
-                .Include(b => b.Reviews)
-                .Include(b => b.BookGenres)
-                .ThenInclude(b => b.Genre)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (books == null)
-            {
-                return NotFound();
-            }
-
-            return View(books);
+            return View(viewModel);
         }
 
         // POST: Books/Delete/5
