@@ -1,15 +1,53 @@
-﻿using BookStore.Data;
+﻿using BookStore.Areas.Identity.Data;
+using BookStore.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.Models
 {
     public class SeedData
     {
+        public static async Task CreateUserRoles(IServiceProvider serviceProvider)
+        {
+            var RoleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var UserManager = serviceProvider.GetRequiredService<UserManager<BookStoreUser>>();
+            IdentityResult roleResult;
+            var registeredRoleCheck = await RoleManager.RoleExistsAsync("Registered");
+            if (!registeredRoleCheck)
+            {
+                roleResult = await RoleManager.CreateAsync(new IdentityRole("Registered"));
+            }
+            //Add Admin Role
+            var roleCheck = await RoleManager.RoleExistsAsync("Admin");
+            if (!roleCheck) { roleResult = await RoleManager.CreateAsync(new IdentityRole("Admin")); }
+            BookStoreUser user = await UserManager.FindByEmailAsync("admin@mvcmovie.com");
+            if (user == null)
+            {
+                var User = new BookStoreUser();
+                User.Email = "admin@BookStore.com";
+                User.UserName = "admin";
+                string userPWD = "Admin123";
+                IdentityResult chkUser = await UserManager.CreateAsync(User, userPWD);
+                //Add default User to Role Admin
+                if (chkUser.Succeeded) { var result1 = await UserManager.AddToRoleAsync(User, "Admin"); }
+            }
+            
+            // Assign "Registered" Role to all registered users
+            var allUsers = await UserManager.Users.ToListAsync();
+            foreach (var usr in allUsers)
+            {
+                if (!await UserManager.IsInRoleAsync(usr, "Registered"))
+                {
+                    await UserManager.AddToRoleAsync(usr, "Registered");
+                }
+            }
+        }
         public static void Initialize(IServiceProvider serviceProvider)
         {
             using (var context = new BookStoreContext(
                 serviceProvider.GetRequiredService<DbContextOptions<BookStoreContext>>()))
             {
+                CreateUserRoles(serviceProvider).Wait();
                 if (context.Books.Any() || context.Author.Any() || context.Genres.Any())
                 {
                     return;

@@ -4,73 +4,156 @@
     ViewData["Title"] = "Index";
 }
 @using System.IO
+<style>
+    .card {
+        border-radius: 20px;
+        transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+    }
+    .naslov{
+        
+    }
 
+        .card:hover {
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            transform: scale(1.04);
+        }
+
+    .card-img-top {
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+    }
+
+    .card-footer {
+        
+        display: flex;
+        
+    }
+
+    .button-container {
+        /* Ensure buttons expand to fill the available space */
+        flex-grow: 1;
+        display: flex;
+        justify-content:center;
+        
+    }
+
+        .button-container button {
+           
+            margin-left: 10px; /* Add space between buttons */
+            margin-right: 10px;
+        }
+
+    .card.smooth-transition {
+        transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+</style>
 <div class="container-lg">
-    <h1 class="mt-5">Index</h1>
+    <h1 class="mt-5 text-center">Welcome to Bunte's BookStore</h1>
+    <br />
+    <br />
 
-    <p>
-        <a class="btn btn-primary" asp-action="Create">Create New</a>
-    </p>
-    <form asp-controller="Books" asp-action="Index" method="get">
+    @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+    {
         <p>
-            <select asp-for="BookGenre" asp-items="Model.Genres">
+            <a asp-action="Create" class="btn btn-outline-dark ">Create New</a>
+        </p>
+    }
+    <form class="row g-3 justify-content-center" asp-controller="Books" asp-action="Index" method="get">
+        <div class="col-lg-4 col-md-6">
+            <select asp-for="BookGenre" asp-items="Model.Genres" class="form-control mb-3 mb-md-0">
                 <option value="">All</option>
             </select>
-            Title: <input type="text" asp-for="SearchString" />
-            Author: <input type="text" asp-for="AuthorSearchString" />
-            <input type="submit" value="Filter" />
-        </p>
-    </form>
- 
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead class="thead-dark">
-                <tr>
-                    <th>@Html.DisplayNameFor(model => model.Books[0].Title)</th>
-                    <th>@Html.DisplayNameFor(model => model.Books[0].YearPublished)</th>
-                    <th>@Html.DisplayNameFor(model => model.Books[0].NumPages)</th>
-                    <th>@Html.DisplayNameFor(model => model.Books[0].Description)</th>
-                    <th>@Html.DisplayNameFor(model => model.Books[0].Publisher)</th>
-                    <th>@Html.DisplayNameFor(model => model.Books[0].FrontPage)</th>
-                    <th>@Html.DisplayNameFor(model => model.Books[0].DownloadUrl)</th>
-                    <th>@Html.DisplayNameFor(model => model.Books[0].Author)</th>
-                    <th>@Html.DisplayNameFor(model => model.Books[0].BookGenres)</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.Books)
-                {
-                    <tr>
-                        <td>@Html.DisplayFor(modelItem => item.Title)</td>
-                        <td>@Html.DisplayFor(modelItem => item.YearPublished)</td>
-                        <td>@Html.DisplayFor(modelItem => item.NumPages)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Description)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Publisher)</td>
-                        <td><img class="img-fluid" src="@Html.DisplayFor(modelItem => item.FrontPage)" style="max-width: 100px;" /></td>
-                        <td><a href="@Url.Action("ViewFile", "Books", new { fileName = item.DownloadUrl.Split('/').Last() })">Download PDF</a></td>
-                        @*  raboti se *@
-                        <td>@Html.DisplayFor(modelItem => item.Author.FullName)</td>
-                        <td>
-                            @foreach (var genre in item.BookGenres)
-                            {
-                                <a asp-controller="Actors" asp-action="Details" asp-route-id="@genre.GenreId">
-                                    @genre.Genre.GenreName
-                                </a>
+        </div>
 
-                                <br />
-                            }
-                        </td>
-                        <td>
-                            <div class="btn-group-vertical">
-                                <a class="btn btn-info btn-sm" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
-                                <a class="btn btn-secondary btn-sm" asp-action="Details" asp-route-id="@item.Id">Details</a>
-                                <a class="btn btn-danger btn-sm" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        <div class="col-lg-4 col-md-6">
+            <label asp-for="SearchString" class="visually-hidden">Title:</label>
+            <input type="text" asp-for="SearchString" class="form-control mb-3 mb-md-0" placeholder="Title">
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <label asp-for="AuthorSearchString" class="visually-hidden">Author:</label>
+            <input type="text" asp-for="AuthorSearchString" class="form-control mb-3 mb-md-0" placeholder="Author">
+        </div>
+        <div class="col-md-2">
+            <button id="filterButton" type="submit" class="btn btn-secondary w-100">Filter</button>
+        </div>
+    </form>
+
+    <div class="row mt-4">
+        @foreach (var item in Model.Books)
+        {
+            <div class="col-md-4 mb-4">
+                
+                <div class="card h-100 ">
+                    <a asp-action="Details" asp-route-id="@item.Id">
+                    <div style="height: 600px; overflow: hidden;">
+                        <img src="@Html.DisplayFor(modelItem => item.FrontPage)" class="card-img-top" alt="Book cover">
+                    </div>
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title">@Html.DisplayFor(modelItem => item.Title)</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Author: @Html.DisplayFor(modelItem => item.Author.FullName)</li>
+                            <li class="list-group-item">Published: @Html.DisplayFor(modelItem => item.YearPublished)</li>
+                            <li class="list-group-item">Publisher: @Html.DisplayFor(modelItem => item.Publisher)</li>
+                            <li class="list-group-item">
+                                Genres:
+                                @foreach (var genre in item.BookGenres)
+                                {
+                                    <a asp-controller="Genres" asp-action="Details" asp-route-id="@genre.GenreId">@genre.Genre.GenreName</a>
+                                    if (!genre.Equals(item.BookGenres.Last()))
+                                    {
+                                        <span>, </span>
+                                    }
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-footer ">
+                        <div class="button-container">
+                            <a class="btn btn-outline-dark" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            
+                                    
+                                @if (User.IsInRole("Admin"))
+                                {
+                                        
+                                        <a class="btn btn-outline-dark" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                                        <a class="btn btn-outline-dark" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                                }
+                                    
+                                else if (User.IsInRole("Registered"))
+                                {
+                                    
+                                    <form asp-controller="UserBooks" asp-action="Create" method="post">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <input type="hidden" name="AppUser" value="@User.Identity.Name" />
+                                            <button type="submit" class="btn btn-outline-dark">Buy</button>
+                                    </form>
+                                }
+                            
+                        }
+                    </div>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>
+@section scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Add smooth transition class to cards when filter button is clicked
+            $("#filterButton").click(function () {
+                $(".card").addClass("smooth-transition");
+            });
+        });
+    </script>
+}
+

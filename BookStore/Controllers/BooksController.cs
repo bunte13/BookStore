@@ -10,6 +10,7 @@ using BookStore.Models;
 using BookStore.ViewModel;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BookStore.Controllers
 {
@@ -119,6 +120,7 @@ namespace BookStore.Controllers
         }
         //tuka treba
         // GET: Books/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "FullName");
@@ -137,6 +139,7 @@ namespace BookStore.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
 
         //i tuka treba
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookGenresCreateViewModel viewmodel)
@@ -188,6 +191,7 @@ namespace BookStore.Controllers
         }
         //tuka cepnavme
         // GET: Books/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.Books == null)
@@ -217,6 +221,7 @@ namespace BookStore.Controllers
         // POST: Books/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, BookGenresEditViewModel viewModel)
@@ -305,8 +310,29 @@ namespace BookStore.Controllers
             ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "FullName", viewModel.Book.AuthorId);
             return View(viewModel);
         }
+        // GET: Books/Delete/5
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
+            var book = await _context.Books
+                .Include(b => b.Author)
+                .Include(b => b.Reviews)
+                .Include(b => b.BookGenres).ThenInclude(b => b.Genre)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            return View(book);
+        }
         // POST: Books/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

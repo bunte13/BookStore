@@ -7,16 +7,21 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BookStore.Data;
 using BookStore.Models;
+using Microsoft.AspNetCore.Identity;
+using BookStore.Areas.Identity.Data;
+using BookStore.ViewModel;
 
 namespace BookStore.Controllers
 {
     public class ReviewsController : Controller
     {
         private readonly BookStoreContext _context;
+        private readonly UserManager<BookStoreUser> _userManager;
 
-        public ReviewsController(BookStoreContext context)
+        public ReviewsController(BookStoreContext context, UserManager<BookStoreUser> userManager )
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Reviews
@@ -46,10 +51,22 @@ namespace BookStore.Controllers
         }
 
         // GET: Reviews/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create(int id)
         {
-            ViewData["BookId"] = new SelectList(_context.Set<Books>(), "Id", "Id");
-            return View();
+            var book = await _context.Books.Where(s => s.Id == id).SingleOrDefaultAsync();
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            var bookReview = new BookReview
+            {
+                Title = book.Title,
+                Id = book.Id,
+                Review = new Review()
+            };
+
+            return View(bookReview);
         }
 
         // POST: Reviews/Create
@@ -57,16 +74,30 @@ namespace BookStore.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,BookId,AppUser,Comment,Rating")] Review review)
+        public async Task<IActionResult> Create(BookReview viewModel)
         {
-            if (ModelState.IsValid)
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            if (user == null)
             {
-                _context.Add(review);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return NotFound("User not found");
             }
-            ViewData["BookId"] = new SelectList(_context.Set<Books>(), "Id", "Id", review.BookId);
-            return View(review);
+
+            var book = await _context.Books.FindAsync(viewModel.Id);
+            if (book == null)
+            {
+                return NotFound("Book not found");
+            }
+
+            var newEntry = new Review
+            {
+                Comment = viewModel.Review.Comment,
+                Rating = viewModel.Review.Rating,
+                AppUser = user.Email,
+                BookId = book.Id
+            };
+            _context.Review.Add(newEntry); // Use the correct DbSet to add the new entry
+                await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Reviews/Edit/5
@@ -82,7 +113,7 @@ namespace BookStore.Controllers
             {
                 return NotFound();
             }
-            ViewData["BookId"] = new SelectList(_context.Set<Books>(), "Id", "Id", review.BookId);
+            ViewData["BookId"] = new SelectList(_context.Set<Books>(), "Id", "Title", review.BookId);
             return View(review);
         }
 

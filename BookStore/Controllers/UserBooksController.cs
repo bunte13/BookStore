@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -7,29 +6,48 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BookStore.Data;
 using BookStore.Models;
+using Microsoft.AspNetCore.Identity;
+using BookStore.Areas.Identity.Data;
 
 namespace BookStore.Controllers
 {
     public class UserBooksController : Controller
     {
         private readonly BookStoreContext _context;
+        private readonly UserManager<BookStoreUser> _userManager;
 
-        public UserBooksController(BookStoreContext context)
+        public UserBooksController(BookStoreContext context, UserManager<BookStoreUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: UserBooks
         public async Task<IActionResult> Index()
         {
-            var bookStoreContext = _context.UserBooks.Include(u => u.Book);
-            return View(await bookStoreContext.ToListAsync());
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+            var name = user.Email;
+
+            var userBooks = await _context.UserBooks
+                .Include(u => u.Book)
+                    .ThenInclude(b => b.BookGenres)
+                        .ThenInclude(bg => bg.Genre)
+                .Include(u => u.Book)
+                    .ThenInclude(b => b.Author)
+                .Where(ub => ub.AppUser == name)
+                .ToListAsync();
+
+            return View(userBooks);
         }
 
         // GET: UserBooks/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || _context.UserBooks == null)
+            if (id == null)
             {
                 return NotFound();
             }
@@ -37,6 +55,7 @@ namespace BookStore.Controllers
             var userBooks = await _context.UserBooks
                 .Include(u => u.Book)
                 .FirstOrDefaultAsync(m => m.Id == id);
+                
             if (userBooks == null)
             {
                 return NotFound();
@@ -48,31 +67,37 @@ namespace BookStore.Controllers
         // GET: UserBooks/Create
         public IActionResult Create()
         {
-            ViewData["BookId"] = new SelectList(_context.Set<Books>(), "Id", "Id");
+            ViewData["BookId"] = new SelectList(_context.Books, "Id", "Title");
             return View();
         }
 
         // POST: UserBooks/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,AppUser,BookId")] UserBooks userBooks)
+        public async Task<IActionResult> Create(int id)
         {
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            var name = user.Email;
+            UserBooks entry = new UserBooks
+            {
+                AppUser = name,
+                BookId = id
+            };
             if (ModelState.IsValid)
             {
-                _context.Add(userBooks);
+
+                _context.Add(entry);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BookId"] = new SelectList(_context.Set<Books>(), "Id", "Id", userBooks.BookId);
-            return View(userBooks);
+            ViewData["BookId"] = new SelectList(_context.Books, "Id", "Title", entry.BookId);
+            return View(entry);
         }
 
         // GET: UserBooks/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null || _context.UserBooks == null)
+            if (id == null)
             {
                 return NotFound();
             }
@@ -82,13 +107,11 @@ namespace BookStore.Controllers
             {
                 return NotFound();
             }
-            ViewData["BookId"] = new SelectList(_context.Set<Books>(), "Id", "Id", userBooks.BookId);
+            ViewData["BookId"] = new SelectList(_context.Books, "Id", "Title", userBooks.BookId);
             return View(userBooks);
         }
 
         // POST: UserBooks/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,AppUser,BookId")] UserBooks userBooks)
@@ -118,14 +141,14 @@ namespace BookStore.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BookId"] = new SelectList(_context.Set<Books>(), "Id", "Id", userBooks.BookId);
+            ViewData["BookId"] = new SelectList(_context.Books, "Id", "Title", userBooks.BookId);
             return View(userBooks);
         }
 
         // GET: UserBooks/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || _context.UserBooks == null)
+            if (id == null)
             {
                 return NotFound();
             }
@@ -146,23 +169,19 @@ namespace BookStore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.UserBooks == null)
-            {
-                return Problem("Entity set 'BookStoreContext.UserBooks'  is null.");
-            }
             var userBooks = await _context.UserBooks.FindAsync(id);
             if (userBooks != null)
             {
                 _context.UserBooks.Remove(userBooks);
+                await _context.SaveChangesAsync();
             }
-            
-            await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
         private bool UserBooksExists(int id)
         {
-          return (_context.UserBooks?.Any(e => e.Id == id)).GetValueOrDefault();
+            return _context.UserBooks.Any(e => e.Id == id);
         }
     }
 }

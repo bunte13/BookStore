@@ -4,94 +4,95 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+<h1 class="text-center mb-4">@Html.DisplayFor(model => model.Title)</h1>
 
-<div>
-    <h4>Books</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.YearPublished)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.YearPublished)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NumPages)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NumPages)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Publisher)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Publisher)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FrontPage)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FrontPage)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DownloadUrl)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DownloadUrl)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Author)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Author.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.BookGenres)
-        </dt>
-        <dd class="col-sm-10">
-            @foreach (var genre in Model.BookGenres)
-            {
-                <a asp-controller="Actors" asp-action="Details" asp-route-id="@genre.GenreId">
-                    @genre.Genre.GenreName
-                </a> <br />
-            }
-        </dd>
-        <dt class="col-sm-2">
-            <a>Rating:</a>
-        </dt>
-        <dd class="col-sm-10">
-            @{
-                double sumOfRatings = 0;
-                foreach (var item in Model.Reviews)
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Details</h5>
+        <dl class="row">
+            <dt class="col-sm-3">Title:</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Title)</dd>
+
+            <dt class="col-sm-3">Year Published:</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.YearPublished)</dd>
+
+            <dt class="col-sm-3">Number of Pages:</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.NumPages)</dd>
+
+            <dt class="col-sm-3">Description:</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Description)</dd>
+
+            <dt class="col-sm-3">Publisher:</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Publisher)</dd>
+
+            <dt class="col-sm-3">Author:</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Author.FullName)</dd>
+
+            <dt class="col-sm-3">Genres:</dt>
+            <dd class="col-sm-9">
+                @foreach (var genre in Model.BookGenres)
                 {
-                    sumOfRatings += item.Rating;
+                    <span>@genre.Genre.GenreName</span>
+                    @if (!genre.Equals(Model.BookGenres.Last()))
+                    {
+                        <span>, </span>
+                    }
                 }
-                double averageRating = 0;
-                if (Model.Reviews.Count > 0)
-                {
-                    averageRating = sumOfRatings / (double)Model.Reviews.Count;
-                    averageRating = Math.Round(averageRating, 1);
-                }
-                <a>@averageRating</a>
-                <br />
-            }
             </dd>
-    </dl>
+
+            <dt class="col-sm-3">Rating:</dt>
+            <dd class="col-sm-9">
+                @{
+                    double sumOfRatings = 0;
+                    foreach (var item in Model.Reviews)
+                    {
+                        sumOfRatings += item.Rating;
+                    }
+                    double averageRating = 0;
+                    if (Model.Reviews.Count > 0)
+                    {
+                        averageRating = sumOfRatings / (double)Model.Reviews.Count;
+                        averageRating = Math.Round(averageRating, 1);
+                    }
+                    if (averageRating == 0)
+                    {
+                        <span>No ratings yet</span>
+                    }
+                    else
+                    {
+                        <span>@averageRating</span>
+                    }
+                }
+            </dd>
+        </dl>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<div class="mt-3">
+    @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Edit</a>
+    }
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>
+
+<h4 class="mt-5">Reviews</h4>
+<hr />
+@if (Model.Reviews != null && Model.Reviews.Count > 0)
+{
+    <div class="list-group">
+        @foreach (var review in Model.Reviews)
+        {
+            <div class="list-group-item">
+                <h5 class="mb-1">@review.AppUser</h5>
+                <p class="mb-1">@review.Comment</p>
+                <small>Rating: @review.Rating</small>
+            </div>
+        }
+    </div>
+    
+}
+else
+{
+    <p>No reviews yet.</p>
+}

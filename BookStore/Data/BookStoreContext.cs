@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using BookStore.Areas.Identity.Data;
 using BookStore.Models;
 
 namespace BookStore.Data
 {
-    public class BookStoreContext : DbContext
+    public class BookStoreContext : IdentityDbContext<BookStoreUser>
     {
         public BookStoreContext (DbContextOptions<BookStoreContext> options)
             : base(options)
@@ -25,5 +27,11 @@ namespace BookStore.Data
         public DbSet<BookStore.Models.UserBooks> UserBooks { get; set; } = default!;
 
         public DbSet<BookStore.Models.Books> Books { get; set; } = default!;
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+        }
+
     }
 }

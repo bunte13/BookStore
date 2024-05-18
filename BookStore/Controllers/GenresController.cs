@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BookStore.Data;
 using BookStore.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BookStore.Controllers
 {
@@ -22,15 +23,13 @@ namespace BookStore.Controllers
         // GET: Genres
         public async Task<IActionResult> Index()
         {
-              return _context.Genres != null ? 
-                          View(await _context.Genres.ToListAsync()) :
-                          Problem("Entity set 'BookStoreContext.Genres'  is null.");
+              return View(await _context.Genres.ToListAsync());
         }
 
         // GET: Genres/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || _context.Genres == null)
+            if (id == null )
             {
                 return NotFound();
             }
@@ -46,6 +45,7 @@ namespace BookStore.Controllers
         }
 
         // GET: Genres/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
@@ -56,6 +56,7 @@ namespace BookStore.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("Id,GenreName")] Genres genres)
         {
             if (ModelState.IsValid)
@@ -68,9 +69,10 @@ namespace BookStore.Controllers
         }
 
         // GET: Genres/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null || _context.Genres == null)
+            if (id == null)
             {
                 return NotFound();
             }
@@ -88,6 +90,7 @@ namespace BookStore.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,GenreName")] Genres genres)
         {
             if (id != genres.Id)
@@ -119,9 +122,10 @@ namespace BookStore.Controllers
         }
 
         // GET: Genres/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || _context.Genres == null)
+            if (id == null)
             {
                 return NotFound();
             }
@@ -137,14 +141,13 @@ namespace BookStore.Controllers
         }
 
         // POST: Genres/Delete/5
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.Genres == null)
-            {
-                return Problem("Entity set 'BookStoreContext.Genres'  is null.");
-            }
+            
             var genres = await _context.Genres.FindAsync(id);
             if (genres != null)
             {
@@ -157,7 +160,7 @@ namespace BookStore.Controllers
 
         private bool GenresExists(int id)
         {
-          return (_context.Genres?.Any(e => e.Id == id)).GetValueOrDefault();
+            return _context.Genres.Any(e => e.Id == id);
         }
     }
 }

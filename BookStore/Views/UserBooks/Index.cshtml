@@ -1,41 +1,114 @@
-﻿@model IEnumerable<BookStore.Models.UserBooks>
+﻿@using Microsoft.AspNetCore.Identity
+@model IEnumerable<BookStore.Models.UserBooks>
+
+@{
+    ViewData["Title"] = "Index";
+}
+<style>
+    .card {
+        border-radius: 20px;
+        transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+    }
+
+        .card:hover {
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            transform: scale(1.04);
+        }
+
+    .card-img-top {
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-evenly;
+    }
+
+    .button-container {
+        /* Ensure buttons expand to fill the available space */
+        flex-grow: 1;
+        display: flex;
+        justify-content: space-evenly /* Align buttons to the right within the container */
+    }
+
+        .button-container button {
+            /* Style buttons as needed */
+            margin-left: 10px; /* Add space between buttons */
+        }
+
+    .card.smooth-transition {
+        transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+</style>
+
+
 
 @{
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.AppUser)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Book)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.AppUser)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Book.Id)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+@{
+    var userName = User.Identity.Name;
 }
-    </tbody>
-</table>
+
+<h1>@userName's books</h1>
+
+<div class="row mt-4">
+@foreach (var item in Model)
+{
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 ">
+                <div style="height: 600px; overflow: hidden;">
+                    <img src="@Html.DisplayFor(modelItem => item.Book.FrontPage)" class="card-img-top" alt="Book cover">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">@Html.DisplayFor(modelItem => item.Book.Title)</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Author: @Html.DisplayFor(modelItem => item.Book.Author.FullName)</li>
+                        <li class="list-group-item">Published: @Html.DisplayFor(modelItem => item.Book.YearPublished)</li>
+                        <li class="list-group-item">Publisher: @Html.DisplayFor(modelItem => item.Book.Publisher)</li>
+                        <li class="list-group-item">
+                            Genres:
+                            @foreach (var genre in item.Book.BookGenres)
+                            {
+                                <a asp-controller="Genres" asp-action="Details" asp-route-id="@genre.GenreId">@genre.Genre.GenreName</a>
+                                if (!genre.Equals(item.Book.BookGenres.Last()))
+                                {
+                                    <span>, </span>
+                                }
+                            }
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-footer ">
+                    <div class="button-container">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <div>
+                                
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    
+                                    <a class="btn btn-outline-dark" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                                    
+                                }
+                                else if (User.IsInRole("Registered"))
+                                {
+                                    <a class="btn btn-outline-dark" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                                    <a href="@item.Book.DownloadUrl" class="btn btn-outline-dark" download>Read</a>
+                                    <a asp-controller="Reviews" asp-action="Create" asp-route-id="@item.Book.Id" class="btn btn-outline-info">Add review</a>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+</div>
