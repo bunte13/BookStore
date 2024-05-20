@@ -11,10 +11,9 @@
         display: flex;
         flex-direction: column;
         cursor: pointer;
+        background-color: #D3E4E8;
     }
-    .naslov{
-        
-    }
+    
 
         .card:hover {
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
@@ -49,10 +48,31 @@
     .card.smooth-transition {
         transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
+
+    h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 3em; /* Increase font size */
+        font-weight: bold; /* Make it bold */
+    }
+
+    .infos li{
+        background: #D3E4E8;
+    }
+
+    .card-img-top {
+        width: 100%;
+        height: 450px;
+        max-height: 450px; /* Set a maximum height to ensure uniformity */
+        object-fit: cover; /* Ensures the image covers the container without stretching */
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+    }
     
 </style>
 <div class="container-lg">
-    <h1 class="mt-5 text-center">Welcome to Bunte's BookStore</h1>
+    <h1 class="mt-5 text-center">Welcome to Bunte's BookStore 📚</h1>
     <br />
     <br />
 
@@ -90,13 +110,13 @@
                 
                 <div class="card h-100 ">
                     <a asp-action="Details" asp-route-id="@item.Id">
-                    <div style="height: 600px; overflow: hidden;">
+                        <div style= overflow: hidden">
                         <img src="@Html.DisplayFor(modelItem => item.FrontPage)" class="card-img-top" alt="Book cover">
                     </div>
                     </a>
-                    <div class="card-body">
+                    <div class="card-body infos">
                         <h5 class="card-title">@Html.DisplayFor(modelItem => item.Title)</h5>
-                        <ul class="list-group list-group-flush">
+                        <ul class="list-group list-group-flush infos">
                             <li class="list-group-item">Author: @Html.DisplayFor(modelItem => item.Author.FullName)</li>
                             <li class="list-group-item">Published: @Html.DisplayFor(modelItem => item.YearPublished)</li>
                             <li class="list-group-item">Publisher: @Html.DisplayFor(modelItem => item.Publisher)</li>
@@ -104,7 +124,7 @@
                                 Genres:
                                 @foreach (var genre in item.BookGenres)
                                 {
-                                    <a asp-controller="Genres" asp-action="Details" asp-route-id="@genre.GenreId">@genre.Genre.GenreName</a>
+                                    <span>@genre.Genre.GenreName</span>
                                     if (!genre.Equals(item.BookGenres.Last()))
                                     {
                                         <span>, </span>
@@ -127,7 +147,7 @@
                                         <a class="btn btn-outline-dark" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
                                 }
                                     
-                                else if (User.IsInRole("Registered"))
+                                else if (!User.IsInRole("Admin"))
                                 {
                                     
                                     <form asp-controller="UserBooks" asp-action="Create" method="post">

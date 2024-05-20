@@ -8,6 +8,31 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BookStore.styles.css" asp-append-version="true" />
+    <style>
+        body {
+            background: linear-gradient(to bottom right,#37AB9F,#10416E); 
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            background: #BECAE8; 
+            padding-left: 100px;
+            padding-right: 100px;
+            padding-top: 50px;  
+            border-radius: 13px;
+            box-shadow: rgba(0, 0, 0, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
+        }
+
+        .navbar {
+            background: linear-gradient(to left, #37AB9F, #BAE8DB);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        
+
+        
+    </style>
 </head>
 <body>
     <header>
@@ -44,10 +69,10 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
+    <footer class=" footer text-muted">
+        
             &copy; 2024 - BookStore - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
+        
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

@@ -11,7 +11,9 @@
         display: flex;
         flex-direction: column;
         cursor: pointer;
+        background-color: #D3E4E8;
     }
+
 
         .card:hover {
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
@@ -25,23 +27,43 @@
 
     .card-footer {
         display: flex;
-        justify-content: space-evenly;
     }
 
     .button-container {
         /* Ensure buttons expand to fill the available space */
         flex-grow: 1;
         display: flex;
-        justify-content: space-evenly /* Align buttons to the right within the container */
+        justify-content: center;
     }
 
         .button-container button {
-            /* Style buttons as needed */
             margin-left: 10px; /* Add space between buttons */
+            margin-right: 10px;
         }
 
     .card.smooth-transition {
         transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 3em; /* Increase font size */
+        font-weight: bold; /* Make it bold */
+    }
+
+    .infos li {
+        background: #D3E4E8;
+    }
+
+    .card-img-top {
+        width: 100%;
+        height: 450px;
+        max-height: 450px; /* Set a maximum height to ensure uniformity */
+        object-fit: cover; /* Ensures the image covers the container without stretching */
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
     }
 </style>
 
@@ -62,12 +84,12 @@
 {
         <div class="col-md-4 mb-4">
             <div class="card h-100 ">
-                <div style="height: 600px; overflow: hidden;">
+                <div style=" overflow: hidden">
                     <img src="@Html.DisplayFor(modelItem => item.Book.FrontPage)" class="card-img-top" alt="Book cover">
                 </div>
                 <div class="card-body">
                     <h5 class="card-title">@Html.DisplayFor(modelItem => item.Book.Title)</h5>
-                    <ul class="list-group list-group-flush">
+                    <ul class="list-group list-group-flush infos">
                         <li class="list-group-item">Author: @Html.DisplayFor(modelItem => item.Book.Author.FullName)</li>
                         <li class="list-group-item">Published: @Html.DisplayFor(modelItem => item.Book.YearPublished)</li>
                         <li class="list-group-item">Publisher: @Html.DisplayFor(modelItem => item.Book.Publisher)</li>
@@ -75,7 +97,7 @@
                             Genres:
                             @foreach (var genre in item.Book.BookGenres)
                             {
-                                <a asp-controller="Genres" asp-action="Details" asp-route-id="@genre.GenreId">@genre.Genre.GenreName</a>
+                                <span>@genre.Genre.GenreName</span>
                                 if (!genre.Equals(item.Book.BookGenres.Last()))
                                 {
                                     <span>, </span>

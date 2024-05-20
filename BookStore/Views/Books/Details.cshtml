@@ -3,6 +3,13 @@
 @{
     ViewData["Title"] = "Details";
 }
+<style>
+    .review{
+        margin-bottom: 20px;
+        border-radius: 20px;
+        background-color:  #BCE4E8;
+    }
+</style>
 
 <h1 class="text-center mb-4">@Html.DisplayFor(model => model.Title)</h1>
 
@@ -80,7 +87,7 @@
 <hr />
 @if (Model.Reviews != null && Model.Reviews.Count > 0)
 {
-    <div class="list-group">
+    <div class="list-group review">
         @foreach (var review in Model.Reviews)
         {
             <div class="list-group-item">
