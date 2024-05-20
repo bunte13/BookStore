@@ -118,7 +118,7 @@
                                     <a class="btn btn-outline-dark" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
                                     
                                 }
-                                else if (User.IsInRole("Registered"))
+                                else if (!User.IsInRole("Admin"))
                                 {
                                     <a class="btn btn-outline-dark" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
                                     <a href="@item.Book.DownloadUrl" class="btn btn-outline-dark" download>Read</a>
